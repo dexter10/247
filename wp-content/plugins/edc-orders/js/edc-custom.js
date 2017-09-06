@@ -6,13 +6,11 @@ jQuery(document).ready(function($) {
 		if (this.checked) {
 			billingToShipping();
 		}
-		console.log('clicked');
 	});
 	
 	$("#place_order").on("click", function() {
 		if( !$('.shipping_address').is(':visible') ) {
-				billingToShipping();
-				console.log('place order');
+			billingToShipping();
 		}
 	});
 
