@@ -1,0 +1,14 @@
+@media (min-width: 768px) {
+	#customer_details {
+		width: 38% !important;
+		margin-right: 2%;
+	}
+
+	#billing_address_house_field,
+	#billing_address_house_ext_field,
+	#shipping_address_house_field,
+	#shipping_address_house_ext_field {
+		clear: none;
+		width: 25%;
+	}
+}

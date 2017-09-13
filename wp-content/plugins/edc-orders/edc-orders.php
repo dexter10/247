@@ -8,7 +8,6 @@ Author:			Jason Thane Jeffers
 Author URI:		ordnung.nl
 */
 
-
 if ( ! defined( 'ABSPATH' ) ) exit; // Exit if accessed directly
 
 if ( ! defined('EDC_ORDER_PATH'))
@@ -20,7 +19,7 @@ if ( ! defined('EDC_ORDER_APP_VERSION'))
 class EDCOrder {
 
     public function __construct() {
-	   	add_action('woocommerce_payment_complete', array( $this, 'edc_send_order' ), 10, 1);
+		add_action('woocommerce_payment_complete', array( $this, 'edc_send_order' ), 10, 1);
 	    add_action( 'wp_enqueue_scripts', array( $this, 'edc_custom_js_enqueue' ) );
     }
 
@@ -29,6 +28,8 @@ class EDCOrder {
         if ( is_checkout()) {
 			wp_register_script( 'edc_custom_js', plugin_dir_url( __FILE__ ) . 'js/edc-custom.js', array( 'jquery' ) );
 			wp_enqueue_script( 'edc_custom_js' );
+			wp_register_style( 'edc_custom_css', plugin_dir_url( __FILE__ ) . 'css/edc-orders.css', array(), '1.0');
+			wp_enqueue_style( 'edc_custom_css' );
 		}
 	}
 
@@ -37,11 +38,14 @@ class EDCOrder {
 		require_once ( EDC_ORDER_PATH . 'config.php' );
 
 		// get order object and order details
-		$order 				= new WC_Order( $order_id ); 
-		$customer_email 	= $order->billing_email;
-		$customer_phone 	= $order->billing_phone;
-		$shipping_type 		= $order->get_shipping_method();
-		$shipping_cost 		= $order->get_total_shipping();
+		$order 				= wc_get_order( $order_id );
+		$order_data 		= $order->get_data(); // The Order data
+		$customer_email 	= $order_data['billing']['email'];
+		$customer_phone 	= $order_data['billing']['phone'];
+		$custom_country		= '1'; // Nederland
+		$packing_slip_id	= '2576'; // Hard-coded packing slip
+		$shipping_method 	= $order->get_shipping_method();
+		$shipping_info 		= '';
 
 		// set the address fields
 		$address_fields = array('country',
@@ -61,17 +65,36 @@ class EDCOrder {
 		
 		if (is_array($address_fields)) {
 			foreach($address_fields as $field){
-				$address['billing_'.$field] 	= get_post_meta( $order_id, '_billing_'.$field, true );
 				$address['shipping_'.$field] 	= get_post_meta( $order_id, '_shipping_'.$field, true );
 			}
 		}
 
 		// Get custom field value (huisnummer) from Woocommerce Checkout Manager
-		$shipping_address_house = get_post_meta( $order_id, '_shipping_address_house', true );
+		$shipping_address_house 	= get_post_meta( $order_id, '_shipping_address_house', true );
+		$shipping_address_house_ext	= get_post_meta( $order_id, '_shipping_address_house_ext', true );
 
+		// Shipping type & processing date
+		switch($shipping_method){
+			case 'Zondag levering':
+				$processing_date = date('Y-m-d', strtotime('next Sunday'));
+				break;
+			case 'Maandag levering':
+				$processing_date = date('Y-m-d', strtotime('next Monday'));
+				break;
+		}
+		
+		if ($shipping_method != 'Gratis verzending') {
+			$shipping_info = '
+				<processing_date>'.$processing_date.'</processing_date>
+				<carrier_service>'.$shipping_method.'</carrier_service>
+				<carrier>PostNL</carrier>
+			';
+		}
+			
 		$customerDetails = '
 			<email>'.$email.'</email>
 			<apikey>'.$apikey.'</apikey>
+			<password>7651320fc8fd972af966e40752ddcecc</password>
 			<output>advanced</output>
 		';
 
@@ -79,31 +102,29 @@ class EDCOrder {
 			<name>'.$address['shipping_first_name'].' '.$address['shipping_last_name'].'</name>
 			<street>'.$address['shipping_address_1'].'</street>
 			<house_nr>'.$shipping_address_house.'</house_nr>
+			<house_nr_ext>'.$shipping_address_house_ext.'</house_nr_ext>
 			<postalcode>'.$address['shipping_postcode'].'</postalcode>
 			<city>'.$address['shipping_city'].'</city>
-			<country>Nederland</country>
+			<country>'.$custom_country.'</country>
+			<packing_slip_id>'.$packing_slip_id.'</packing_slip_id>
 			<extra_email>'.$customer_email.'</extra_email>
-			<phone>'.$customer_phone.'</phone>
-			<carrier>PostNL</carrier>
-			<carrier_service>'.$shipping_type.'</carrier_service>
-			<packing_slip_id>2576</packing_slip_id>
-		';
+			<phone>'.$customer_phone.'</phone>'.
+			$shipping_info
+		;
 
-		// get product details
+		// Get product details -> articles
 		$items 		= $order->get_items();
 		$item_qty 	= array();
 		$item_sku 	= array();
 		$products 	= array();
 
 		foreach( $items as $key => $item){
-			$item_qty[] = $item['qty'];
 			$item_id 	= $item['product_id'];
 			$product 	= new WC_Product($item_id);
-			$item_sku[] = $product->get_sku();			
 			
 			for ($i = 0; $i < $item['qty']; $i++) {
 				$products[] = '
-					<artnr>'.$product->get_sku().'</artnr>';
+				<artnr>'.$product->get_sku().'</artnr>';
 			}
 		}
 
@@ -111,8 +132,7 @@ class EDCOrder {
 		<?xml version="1.0"?>
 			<orderdetails>
 				<customerdetails>'.$customerDetails.'</customerdetails>
-				<receiver>'
-				.$receiver.'</receiver>
+				<receiver>'.$receiver.'</receiver>
 				<products>'.implode($products, '').'
 				</products>
 			</orderdetails>
@@ -121,7 +141,7 @@ class EDCOrder {
 		error_log( $xml );
 
 		// Check whether the config vars are all set
-		if(empty($email) || empty($password)){
+		if(empty($email)){
 			die('Please enter your config vars');
 		}
 
@@ -144,13 +164,14 @@ class EDCOrder {
 				die('There was a problem with the connection to EDC');
 			} else {
 				$json = json_decode($result,true);
-
+				
 				// Success
 				if($json['result'] == 'OK'){
 
 					echo '<pre>';
 					echo 'The order was successful. The following output was received from EDC:'.PHP_EOL;
 					print_r($json);
+					error_log( 'OK = ' . $json . $result);
 					echo '</pre>';
 
 				// Failure
@@ -158,13 +179,12 @@ class EDCOrder {
 					echo '<pre>';
 					echo 'There was a problem with the order request. The following output was received from EDC:'.PHP_EOL;
 					print_r($json);
+					error_log( 'NOT OK = ' . $json . $result);
 					echo '</pre>';
 				}
 			}
-		}	
-
+		}
 	}
-
 }
 
 $edc_order = new EDCOrder();
