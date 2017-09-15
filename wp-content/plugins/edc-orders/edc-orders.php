@@ -20,7 +20,7 @@ class EDCOrder {
 
     public function __construct() {
 		add_action('woocommerce_payment_complete', array( $this, 'edc_send_order' ), 10, 1);
-	    add_action( 'wp_enqueue_scripts', array( $this, 'edc_custom_js_enqueue' ) );
+		add_action( 'wp_enqueue_scripts', array( $this, 'edc_custom_js_enqueue' ) );
     }
 
 	public function edc_custom_js_enqueue() {
@@ -94,7 +94,6 @@ class EDCOrder {
 		$customerDetails = '
 			<email>'.$email.'</email>
 			<apikey>'.$apikey.'</apikey>
-			<password>7651320fc8fd972af966e40752ddcecc</password>
 			<output>advanced</output>
 		';
 
@@ -119,8 +118,8 @@ class EDCOrder {
 		$products 	= array();
 
 		foreach( $items as $key => $item){
-			$item_id 	= $item['product_id'];
-			$product 	= new WC_Product($item_id);
+			$item_id = $item['product_id'];
+			$product = new WC_Product($item_id);
 			
 			for ($i = 0; $i < $item['qty']; $i++) {
 				$products[] = '
@@ -170,7 +169,7 @@ class EDCOrder {
 
 					echo '<pre>';
 					echo 'The order was successful. The following output was received from EDC:'.PHP_EOL;
-					print_r($json);
+					//print_r($json);
 					error_log( 'OK = ' . $json . $result);
 					echo '</pre>';
 
@@ -178,7 +177,7 @@ class EDCOrder {
 				} else {
 					echo '<pre>';
 					echo 'There was a problem with the order request. The following output was received from EDC:'.PHP_EOL;
-					print_r($json);
+					//print_r($json);
 					error_log( 'NOT OK = ' . $json . $result);
 					echo '</pre>';
 				}
