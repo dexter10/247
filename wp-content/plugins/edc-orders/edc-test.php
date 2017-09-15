@@ -35,16 +35,20 @@ class EDCOrder {
 
 	public function edc_send_order( $order_id ){
 		
-		require EDC_ORDER_PATH . 'config.php';
+		//require ( EDC_ORDER_PATH . 'config.php' );
+		// Configuration variables
+		//$email		= 'testaccount@edc-internet.nl';
+		//$apikey		= '7651320RK8RD972HR966Z40752DDKZKK';
+		$apiurl		= 'https://www.erotischegroothandel.nl/ao/';
 
 		// get order object and order details
 		$order 				= wc_get_order( $order_id );
-		$order_data 		= $order->get_data();
+		$order_data 		= $order->get_data(); // The Order data
 		$customer_email 	= $order_data['billing']['email'];
 		$customer_phone 	= $order_data['billing']['phone'];
 		$customer_country		= '1'; // Nederland
-		//$packing_slip_id	= '2576'; // Hard-coded packing slip - live
-		$packing_slip_id	= '23'; // Hard-coded packing slip - test
+		//$packing_slip_id	= '2576'; // Hard-coded packing slip
+		$packing_slip_id	= '23'; // Hard-coded test packing slip
 		$shipping_method 	= $order->get_shipping_method();
 		$shipping_info 		= '';
 
@@ -93,8 +97,8 @@ class EDCOrder {
 		}
 			
 		$customerDetails = '
-			<email>'.$email.'</email>
-			<apikey>'.$apikey.'</apikey>
+			<email>testaccount@edc-internet.nl</email>
+			<apikey>7651320RK8RD972HR966Z40752DDKZKK</apikey>
 			<output>advanced</output>
 		';
 
@@ -128,47 +132,62 @@ class EDCOrder {
 			}
 		}
 
-		$xml = '<?xml version="1.0"?>
-				<orderdetails>
+		$xml = '
+		<?xml version="1.0"?>
+			<orderdetails>
 				<customerdetails>'.$customerDetails.'</customerdetails>
 				<receiver>'.$receiver.'</receiver>
-				<products>'.implode($products, '').'</products>
-				</orderdetails>
-			';
+				<products>'.implode($products, '').'
+				</products>
+			</orderdetails>
+		';
+
+		error_log( $xml );
 
 		// Check whether the config vars are all set
-		if(empty($email)){
-			die('Please enter your config vars');
-		}
+//		if(empty($email)){
+//			die('Please enter your config vars');
+//		}
 
 		// Check whether the cURL module has been installed
 		if(!function_exists('curl_init')){
 			error_log( 'You do not have the cURL functions installed! Ask your host for more info.' . $json . $result);
 			die('You do not have the cURL functions installed! Ask your host for more info.');
 		} else {
-			
+
 			// Send the XML request
 			$postfields = 'data='.$xml;
-			
-			$ch = curl_init();
-			curl_setopt($ch, CURLOPT_URL,$apiurl);
-			curl_setopt($ch,CURLOPT_RETURNTRANSFER,1);
+			$ch = curl_init($apiurl);
+			curl_setopt($ch,CURLOPT_HEADER,0);
 			curl_setopt($ch,CURLOPT_POST,1);
+			curl_setopt($ch,CURLOPT_RETURNTRANSFER,1);
 			curl_setopt($ch,CURLOPT_POSTFIELDS,$postfields);
+			curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
 			$result = curl_exec($ch);
+			curl_close($ch);
 
 			if($ch === false || $result === false){
-				error_log( 'There was a problem with the connection to EDC' . $result);
+				error_log( 'There was a problem with the connection to EDC' . $json . $result);
 				die('There was a problem with the connection to EDC');
 			} else {
 				$json = json_decode($result,true);
-
+				
 				// Success
 				if($json['result'] == 'OK'){
-					error_log( 'Success - Result= ' . $result);
+
+					echo '<pre>';
+					echo 'The order was successful. The following output was received from EDC:'.PHP_EOL;
+					//print_r($json);
+					error_log( 'OK = ' . $json . $result);
+					echo '</pre>';
+
 				// Failure
 				} else {
-					error_log( 'Failure - Result= ' . $result);
+					echo '<pre>';
+					echo 'There was a problem with the order request. The following output was received from EDC:'.PHP_EOL;
+					//print_r($json);
+					error_log( 'NOT OK = ' . $json . $result);
+					echo '</pre>';
 				}
 			}
 		}
