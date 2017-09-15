@@ -43,7 +43,8 @@ class EDCOrder {
 		$customer_email 	= $order_data['billing']['email'];
 		$customer_phone 	= $order_data['billing']['phone'];
 		$custom_country		= '1'; // Nederland
-		$packing_slip_id	= '2576'; // Hard-coded packing slip
+		//$packing_slip_id	= '2576'; // Hard-coded packing slip
+		$packing_slip_id	= '23'; // Hard-coded test packing slip
 		$shipping_method 	= $order->get_shipping_method();
 		$shipping_info 		= '';
 
