@@ -130,9 +130,9 @@ class EDCOrder {
 
 		$xml = '<?xml version="1.0"?>
 				<orderdetails>
-				<customerdetails>'.$customerDetails.'</customerdetails>
-				<receiver>'.$receiver.'</receiver>
-				<products>'.implode($products, '').'</products>
+					<customerdetails>'.$customerDetails.'</customerdetails>
+					<receiver>'.$receiver.'</receiver>
+					<products>'.implode($products, "\n").'</products>
 				</orderdetails>
 			';
 
@@ -158,7 +158,6 @@ class EDCOrder {
 			$result = curl_exec($ch);
 
 			if($ch === false || $result === false){
-				error_log( 'There was a problem with the connection to EDC' . $result);
 				die('There was a problem with the connection to EDC');
 			} else {
 				$json = json_decode($result,true);

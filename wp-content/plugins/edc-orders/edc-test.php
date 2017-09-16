@@ -1,6 +1,6 @@
 <?php
 
-// Not working - porque?
+// Not working - extra line above <?xml>?
 $xml = '
 	<?xml version="1.0"?>
 	<orderdetails>
@@ -12,9 +12,9 @@ $xml = '
 
 // Working - go figure!
 $xml = '<?xml version="1.0"?>
-	<orderdetails>
-	<customerdetails>'.$customerDetails.'</customerdetails>
-	<receiver>'.$receiver.'</receiver>
-	<products>'.implode($products, '').'</products>
-	</orderdetails>
-';
+		<orderdetails>
+			<customerdetails>'.$customerDetails.'</customerdetails>
+			<receiver>'.$receiver.'</receiver>
+			<products>'.implode($products, "\n").'</products>
+		</orderdetails>
+	';
