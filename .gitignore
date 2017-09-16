@@ -6,3 +6,4 @@ _notes/
 /node_modules/
 /wp-config.php
 /wp-content/plugins/edc-orders/config.php
+/wp-content/index.php

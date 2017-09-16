@@ -38,11 +38,11 @@ class EDCOrder {
 		require EDC_ORDER_PATH . 'config.php';
 
 		// get order object and order details
-		$order 				= wc_get_order( $order_id );
+		$order				= wc_get_order( $order_id );
 		$order_data 		= $order->get_data();
 		$customer_email 	= $order_data['billing']['email'];
 		$customer_phone 	= $order_data['billing']['phone'];
-		$customer_country		= '1'; // Nederland
+		$customer_country	= '1'; // Nederland
 		//$packing_slip_id	= '2576'; // Hard-coded packing slip - live
 		$packing_slip_id	= '23'; // Hard-coded packing slip - test
 		$shipping_method 	= $order->get_shipping_method();
