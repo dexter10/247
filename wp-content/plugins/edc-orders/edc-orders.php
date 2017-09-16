@@ -165,6 +165,10 @@ class EDCOrder {
 				// Success
 				if($json['result'] == 'OK'){
 					error_log( 'Success - Result= ' . $result);
+					$file	= plugin_dir_path( __FILE__ ) . '/results/results.txt'; 
+					$open	= fopen( $file, "w+" ); 
+					$write	= fputs( $open, $result ); 
+					fclose( $open );
 				// Failure
 				} else {
 					error_log( 'Failure - Result= ' . $result);

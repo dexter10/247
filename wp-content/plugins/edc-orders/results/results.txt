@@ -1,0 +1,1 @@
+{"result":"OK","ordernumber":"EG1709161116852","own_ordernumber":"","total_incl_vat":"28.20","vatlow":"0.00","vathigh":"4.89","shippingcosts_excl_vat":"5.79","subtotal_excl_vat":"17.52","used_prepaid":"N","products":[{"artnr":"05890390000","stock":"Y","price":"17.52","vat":"3.68","vatclass":"1.21","quantity":1,"weeknr":""}]}
