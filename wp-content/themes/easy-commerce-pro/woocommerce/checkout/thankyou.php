@@ -44,9 +44,10 @@ if ( ! defined( 'ABSPATH' ) ) {
 			$content = fread($fp, filesize($filename));
 			$lines = explode("\n", $content);
 			fclose($fp);
-			print_r($lines);
 			?>
-
+			<h3>Order Results (will be removed):</h3>
+			<h4><?php print_r($lines);?></h4>
+			<hr>
 			<p class="woocommerce-notice woocommerce-notice--success woocommerce-thankyou-order-received"><?php echo apply_filters( 'woocommerce_thankyou_order_received_text', __( 'Thank you. Your order has been received.', 'woocommerce' ), $order ); ?></p>
 
 			<ul class="woocommerce-order-overview woocommerce-thankyou-order-details order_details">

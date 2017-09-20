@@ -24,7 +24,7 @@ class EDCOrder {
     }
 
 	public function edc_custom_js_enqueue() {
-				
+		
         if ( is_checkout()) {
 			wp_register_script( 'edc_custom_js', plugin_dir_url( __FILE__ ) . 'js/edc-custom.js', array( 'jquery' ) );
 			wp_enqueue_script( 'edc_custom_js' );
@@ -34,7 +34,7 @@ class EDCOrder {
 	}
 
 	public function edc_send_order( $order_id ){
-		
+
 		require EDC_ORDER_PATH . 'config.php';
 
 		// get order object and order details
@@ -43,8 +43,8 @@ class EDCOrder {
 		$customer_email 	= $order_data['billing']['email'];
 		$customer_phone 	= $order_data['billing']['phone'];
 		$customer_country	= '1'; // Nederland
-		//$packing_slip_id	= '2576'; // Hard-coded packing slip - live
-		$packing_slip_id	= '23'; // Hard-coded packing slip - test
+		$packing_slip_id	= '2576'; // Hard-coded packing slip - live
+		//$packing_slip_id	= '23'; // Hard-coded packing slip - test
 		$shipping_method 	= $order->get_shipping_method();
 		$shipping_info 		= '';
 
@@ -56,23 +56,21 @@ class EDCOrder {
 			'company',
 			'address_1',
 			'address_2',
-			'address_3',
-			'address_4',
 			'city',
 			'state',
 			'postcode');
 
 		$address = array();
-		
+
 		if (is_array($address_fields)) {
 			foreach($address_fields as $field){
 				$address['shipping_'.$field] 	= get_post_meta( $order_id, '_shipping_'.$field, true );
 			}
 		}
 
-		// Get custom field value (huisnummer) from Woocommerce Checkout Manager
-		$shipping_address_house 	= get_post_meta( $order_id, '_shipping_address_house', true );
-		$shipping_address_house_ext	= get_post_meta( $order_id, '_shipping_address_house_ext', true );
+		$shipping_house_info 	= $address['shipping_address_2'];
+		$shipping_house_number 	= intval(preg_replace('/[^0-9]+/', '', $shipping_house_info), 10);
+		$shipping_house_ext		= preg_replace('/[^a-zA-Z]/', '', $shipping_house_info);
 
 		// Shipping type & processing date
 		switch($shipping_method){
@@ -101,8 +99,8 @@ class EDCOrder {
 		$receiver = '
 			<name>'.$address['shipping_first_name'].' '.$address['shipping_last_name'].'</name>
 			<street>'.$address['shipping_address_1'].'</street>
-			<house_nr>'.$shipping_address_house.'</house_nr>
-			<house_nr_ext>'.$shipping_address_house_ext.'</house_nr_ext>
+			<house_nr>'.$shipping_house_number.'</house_nr>
+			<house_nr_ext>'.$shipping_house_ext.'</house_nr_ext>
 			<postalcode>'.$address['shipping_postcode'].'</postalcode>
 			<city>'.$address['shipping_city'].'</city>
 			<country>'.$customer_country.'</country>
@@ -143,13 +141,12 @@ class EDCOrder {
 
 		// Check whether the cURL module has been installed
 		if(!function_exists('curl_init')){
-			error_log( 'You do not have the cURL functions installed! Ask your host for more info.' . $json . $result);
 			die('You do not have the cURL functions installed! Ask your host for more info.');
 		} else {
-			
+
 			// Send the XML request
 			$postfields = 'data='.$xml;
-			
+
 			$ch = curl_init();
 			curl_setopt($ch, CURLOPT_URL,$apiurl);
 			curl_setopt($ch,CURLOPT_RETURNTRANSFER,1);
@@ -164,14 +161,15 @@ class EDCOrder {
 
 				// Success
 				if($json['result'] == 'OK'){
-					error_log( 'Success - Result= ' . $result);
-					$file	= plugin_dir_path( __FILE__ ) . '/results/results.txt'; 
-					$open	= fopen( $file, "w+" ); 
-					$write	= fputs( $open, $result ); 
-					fclose( $open );
+					print_r( 'Success - Result= ' . $result);
+					// Test results - shown in theme -> woocommerce -> checkout -> thankyou.php
+					// $file	= plugin_dir_path( __FILE__ ) . '/results/results.txt'; 
+					// $open	= fopen( $file, "w+" ); 
+					// $write	= fputs( $open, $result . '' . $xml ); 
+					// fclose( $open );
 				// Failure
 				} else {
-					error_log( 'Failure - Result= ' . $result);
+					print_r( 'Failure - Result= ' . $result);
 				}
 			}
 		}

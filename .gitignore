@@ -7,3 +7,8 @@ _notes/
 /wp-config.php
 /wp-content/plugins/edc-orders/config.php
 /wp-content/index.php
+/wp-content/plugins/woo-custom-emails/readme.txt
+/wp-content/plugins/woo-custom-emails/readme.md
+/wp-content/plugins/woo-custom-emails/.editorconfig
+/wp-content/plugins/woo-custom-emails/js/
+/wp-content/plugins/woo-custom-emails/admin/

@@ -18,8 +18,7 @@ jQuery(document).ready(function($) {
 		$("[name='shipping_first_name']").val($("[name='billing_first_name']").val());
 		$("[name='shipping_last_name']").val($("[name='billing_last_name']").val());
 		$("[name='shipping_address_1']").val($("[name='billing_address_1']").val());
-		$("[name='shipping_address_house']").val($("[name='billing_address_house']").val());
-		$("[name='shipping_address_house_ext']").val($("[name='billing_address_house_ext']").val());
+		$("[name='shipping_address_2']").val($("[name='billing_address_2']").val());
 		$("[name='shipping_city']").val($("[name='billing_city']").val());
 		$("[name='shipping_postcode']").val($("[name='billing_postcode']").val());
 	}
